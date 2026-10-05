@@ -1,0 +1,460 @@
+:root{
+  --bg:#0b0d12;
+  --fg:#e8eef7;
+  --muted:#8892a4;
+  --accent:#00c2ff;
+  --panel:#141922;
+  --line:#232b38;
+  --board: min(92vw, 500px, calc(100dvh - 268px));
+  --pad:   min(46vw, 190px);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html,body{
+  margin:0; padding:0; height:100%;
+  background:var(--bg);
+  color:var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+  overflow:hidden;
+  overscroll-behavior:none;
+  -webkit-user-select:none; user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+
+body{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  height:100dvh;
+  padding:
+    calc(8px + env(safe-area-inset-top))
+    10px
+    calc(10px + env(safe-area-inset-bottom));
+}
+
+/* ============ HUD (شامل دکمه‌های افزودن عکس / گالری) ============ */
+#hud{
+  width: var(--board);
+  display:flex;
+  gap:6px;
+  flex:0 0 auto;
+}
+.stat{
+  flex:1;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:5px 3px;
+  text-align:center;
+  line-height:1.3;
+  min-width:0;
+}
+.stat span{
+  display:block;
+  font-size:9px;
+  color:var(--muted);
+  letter-spacing:.3px;
+  white-space:nowrap;
+}
+.stat b{
+  display:block;
+  font-size:14px;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  overflow:hidden;
+}
+#uiLives{ color:#ff5d7a; letter-spacing:1px; font-size:13px; }
+
+.statBtn{
+  appearance:none;
+  -webkit-appearance:none;
+  font-family:inherit;
+  cursor:pointer;
+  outline:none;
+  transition:transform .1s, filter .1s, border-color .1s;
+}
+.statBtn b{ font-size:15px; }
+.statBtn:active{ transform:scale(.93); filter:brightness(1.25); border-color:rgba(0,194,255,.6); }
+
+#boardWrap{
+  position:relative;
+  width: var(--board);
+  height: var(--board);
+  flex:0 0 auto;
+}
+canvas#game{
+  display:block;
+  width:100%;
+  height:100%;
+  border-radius:14px;
+  box-shadow: 0 0 0 1px #2a3446, 0 14px 40px rgba(0,0,0,.65);
+  touch-action:none;
+  background:#fff;
+}
+
+#flash{
+  position:absolute;
+  top:10px; left:50%;
+  transform:translateX(-50%) translateY(-10px);
+  background:rgba(8,12,18,.92);
+  border:1px solid rgba(0,194,255,.4);
+  color:#eaf7ff;
+  font-size:12px;
+  font-weight:700;
+  padding:6px 15px;
+  border-radius:999px;
+  opacity:0;
+  transition:opacity .28s, transform .28s;
+  pointer-events:none;
+  white-space:nowrap;
+  z-index:3;
+}
+#flash.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+#overlay{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  border-radius:14px;
+  background:rgba(6,8,12,.86);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s;
+  text-align:center;
+  z-index:4;
+  overflow-y:auto;
+}
+#overlay.show{ opacity:1; pointer-events:auto; }
+#overlay .card{ max-width:100%; }
+#overlay h1{
+  font-size:19px; margin:0 0 8px; letter-spacing:.3px;
+  background:linear-gradient(90deg,#00c2ff,#7ce7ff);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+#overlay p{
+  font-size:12px; line-height:1.95; color:#b6c2d4;
+  margin:0 0 6px;
+}
+#overlay b{ color:var(--accent); }
+#overlay .big{ font-size:16px; font-weight:800; color:#fff; }
+#overlay button{
+  margin-top:12px;
+  padding:11px 30px;
+  font-size:14px;
+  font-weight:700;
+  font-family:inherit;
+  border-radius:999px;
+  border:1px solid rgba(0,194,255,.45);
+  background:linear-gradient(180deg, rgba(0,194,255,.28), rgba(0,194,255,.06));
+  color:#eaf7ff;
+  cursor:pointer;
+  transition:transform .1s, filter .1s;
+}
+#overlay button:active{ transform:scale(.95); filter:brightness(1.3); }
+
+/* عکس کامل‌شده‌ی مرحله، داخل کارت پایان مرحله */
+.revealFrame{
+  width:100%; max-width:250px;
+  aspect-ratio:1/1;
+  margin:8px auto;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid rgba(0,194,255,.35);
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+.revealFrame img{ width:100%; height:100%; object-fit:cover; display:block; cursor:zoom-in; }
+
+#pad{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+  gap:7px;
+  width:var(--pad);
+  height:var(--pad);
+  flex:0 0 auto;
+  touch-action:none;
+}
+#pad .btn{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,#1b2230,#12171f);
+  color:#bcd3f0;
+  border-radius:14px;
+  font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:background .08s, transform .08s, border-color .08s, color .08s;
+  touch-action:none;
+  padding:0;
+  font-family:inherit;
+}
+#pad .btn.on{
+  background:linear-gradient(180deg, rgba(0,194,255,.3), rgba(0,194,255,.08));
+  border-color:rgba(0,194,255,.6);
+  color:#fff;
+  transform:scale(.94);
+}
+#pad .btn[data-dir="up"]   { grid-area:1/2; }
+#pad .btn[data-dir="left"] { grid-area:2/1; }
+#pad .btn[data-dir="down"] { grid-area:3/2; }
+#pad .btn[data-dir="right"]{ grid-area:2/3; }
+
+/* ============ پنل‌های افزودن عکس / گالری / نمایش تمام‌صفحه ============ */
+.modal{
+  position:fixed; inset:0;
+  background:rgba(4,6,10,.84);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s;
+  z-index:50;
+}
+.modal.show{ opacity:1; pointer-events:auto; }
+.modalCard{
+  position:relative;
+  width:100%; max-width:420px;
+  max-height:82dvh;
+  overflow-y:auto;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px 16px 18px;
+  text-align:center;
+}
+.modalCard h2{
+  font-size:17px; margin:0 0 6px; letter-spacing:.3px;
+  background:linear-gradient(90deg,#00c2ff,#7ce7ff);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.modalCard .hint{ font-size:12px; color:var(--muted); margin:0 0 14px; line-height:1.85; }
+.modalClose{
+  position:absolute; top:10px; left:10px;
+  width:30px; height:30px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:#12161f;
+  color:#bcd3f0;
+  font-size:16px;
+  line-height:1;
+  cursor:pointer;
+  font-family:inherit;
+}
+.modalClose:active{ transform:scale(.9); }
+
+.photoGrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.photoCell{
+  position:relative;
+  aspect-ratio:1/1;
+  border-radius:10px;
+  overflow:hidden;
+  background:#0d1017;
+  border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+}
+.photoCell img{ width:100%; height:100%; object-fit:cover; display:block; }
+.photoCell.locked{ color:#3d4863; font-size:22px; }
+.photoCell.gCell{ cursor:pointer; }
+.photoCell.gCell:active{ transform:scale(.96); }
+.photoGrid .empty{ font-size:12px; color:var(--muted); grid-column:1/-1; padding:18px 4px; line-height:1.9; }
+
+#lightbox{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.94);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:14px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s;
+  z-index:80;
+  padding:
+    calc(22px + env(safe-area-inset-top))
+    22px
+    calc(18px + env(safe-area-inset-bottom));
+}
+#lightbox.show{ opacity:1; pointer-events:auto; }
+
+.lightboxStage{
+  flex:1;
+  width:100%;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#lightbox img{ max-width:100%; max-height:100%; border-radius:10px; display:block; }
+
+.lightboxClose{
+  position:absolute;
+  top: calc(14px + env(safe-area-inset-top));
+  left:14px;
+  width:34px; height:34px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:rgba(18,22,31,.92);
+  color:#eaf1fb;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  font-family:inherit;
+  z-index:2;
+}
+.lightboxClose:active{ transform:scale(.9); }
+
+.lightboxActions{
+  flex:0 0 auto;
+  width:100%;
+  display:flex;
+  justify-content:center;
+}
+.wallpaperBtn{
+  appearance:none;
+  -webkit-appearance:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 22px;
+  font-size:13px;
+  font-weight:700;
+  font-family:inherit;
+  border-radius:999px;
+  border:1px solid rgba(0,194,255,.45);
+  background:linear-gradient(180deg, rgba(0,194,255,.28), rgba(0,194,255,.06));
+  color:#eaf7ff;
+  cursor:pointer;
+  transition:transform .1s, filter .1s, opacity .15s;
+  max-width:100%;
+}
+.wallpaperBtn .wIcon{ font-size:15px; }
+.wallpaperBtn .wLabel{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wallpaperBtn:active{ transform:scale(.95); filter:brightness(1.3); }
+.wallpaperBtn.busy{ opacity:.6; pointer-events:none; }
+
+/* ============ پنل تنظیمات ============ */
+.settingsGroup{
+  margin:0 0 16px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--line);
+  text-align:start;
+}
+.settingsGroup:last-child{
+  margin-bottom:2px;
+  padding-bottom:0;
+  border-bottom:none;
+}
+.settingsLabel{
+  font-size:11px;
+  color:var(--muted);
+  margin:0 0 8px;
+  letter-spacing:.2px;
+}
+.langSwitch{
+  display:flex;
+  gap:8px;
+  background:#0d1017;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px;
+}
+.langBtn{
+  flex:1;
+  appearance:none;
+  -webkit-appearance:none;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  font-family:inherit;
+  font-size:12px;
+  font-weight:700;
+  padding:8px 6px;
+  border-radius:999px;
+  cursor:pointer;
+  transition:background .15s, color .15s;
+}
+.langBtn.active{
+  background:linear-gradient(180deg, rgba(0,194,255,.32), rgba(0,194,255,.1));
+  color:#eaf7ff;
+}
+.langBtn:active{ transform:scale(.96); }
+
+.settingsAction{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  appearance:none;
+  -webkit-appearance:none;
+  font-family:inherit;
+  text-align:right;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#0f131b;
+  color:var(--fg);
+  padding:11px 14px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  margin-bottom:8px;
+  text-align:start;
+  transition:transform .1s, filter .1s, border-color .1s;
+}
+.settingsAction:last-child{ margin-bottom:0; }
+.settingsAction .sIcon{ font-size:15px; flex:0 0 auto; }
+.settingsAction .sText{ flex:1; }
+.settingsAction:active{ transform:scale(.98); filter:brightness(1.2); border-color:rgba(0,194,255,.5); }
+.settingsAction.ghost{
+  background:transparent;
+  border-style:dashed;
+  color:var(--accent);
+}
+
+.aboutBox .aboutLine{
+  font-size:12px;
+  color:var(--muted);
+  margin:0 0 10px;
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+}
+.aboutBox .aboutLine b{ color:var(--fg); }
+.aboutBox .versionLine{
+  font-size:10px;
+  color:#556074;
+  margin:10px 0 0;
+  text-align:center;
+}
+
+@media (orientation: landscape) and (max-height: 620px){
+  :root{
+    --board: min(86vh, 460px);
+    --pad:   min(38vh, 170px);
+  }
+  body{
+    flex-direction:row;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    padding: 8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));
+  }
+  #hud{
+    width:auto;
+    flex-direction:column;
+    max-width:104px;
+    overflow-y:auto;
+  }
+  .stat{ padding:4px 3px; }
+  .stat b{ font-size:13px; }
+  .statBtn b{ font-size:14px; }
+}
