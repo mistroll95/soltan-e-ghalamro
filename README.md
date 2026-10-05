@@ -18,7 +18,7 @@ Java + WebView | HTML5 Canvas | Vanilla JS | minSdk 21 / targetSdk 34
 اجرا
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/conquer-territory.git
+git clone https://github.com/mistroll95/soltan-e-ghalamro.git
 ```
 
 سپس عکس‌ها را با نام 1.jpg تا 10.jpg در app/src/main/assets/img/ بگذار و بیلد کن.
