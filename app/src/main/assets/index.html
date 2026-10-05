@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d12">
+  <title>فتح قلمرو | بازی پیکسلی</title>
+  <link rel="stylesheet" href="style.css">
+ </head>
+ <body>
+  <div id="hud">
+   <div class="stat">
+    <span data-i18n="hud_score">امتیاز</span><b id="uiScore">۰</b>
+   </div>
+   <div class="stat">
+    <span data-i18n="hud_lives">جان</span><b id="uiLives">♥♥♥</b>
+   </div>
+   <div class="stat">
+    <span data-i18n="hud_level">مرحله</span><b id="uiLevel">۱</b>
+   </div>
+   <div class="stat">
+    <span data-i18n="hud_pct">قلمرو</span><b id="uiPct">۹٪</b>
+   </div>
+   <button type="button" class="stat statBtn" id="btnGallery" aria-label="گالری"><span data-i18n="btn_gallery">گالری</span><b>🖼️</b></button>
+   <button type="button" class="stat statBtn" id="btnSettings" aria-label="تنظیمات"><span data-i18n="btn_settings">تنظیمات</span><b>⚙️</b></button>
+  </div>
+  <div id="boardWrap">
+   <canvas id="game" width="500" height="500"></canvas>
+   <div id="flash"></div>
+   <div id="overlay" class="show">
+    <div class="card">
+     <h1 data-i18n="intro_title">فتح قلمرو</h1>
+     <p data-i18n="intro_p1">با مربع <b>آبی</b> حرکت کن. از قلمرو بیرون بزن و مسیر بکش؛ وقتی به قلمرو برگردی، هر ناحیه‌ای که محاصره شده باشد مال تو می‌شود.</p>
+     <p data-i18n="intro_p2">از گوی‌های <b>نارنجی</b> دوری کن — اگر به خطت بخورند یک جان از دست می‌دهی.</p>
+     <p data-i18n="intro_p3">هر مرحله یک عکس از گالری‌ات را کامل می‌کند و هر مرحله سخت‌تر از قبلی است.</p>
+     <p style="font-size:11px;color:#6f7c90" data-i18n="intro_p4">هر عکسی که باز شود را می‌توانی تمام‌صفحه ببینی و مستقیم به‌عنوان پس‌زمینه‌ی گوشی تنظیم کنی.</p>
+     <p style="font-size:11px;color:#6f7c90" data-i18n="intro_p5">موبایل: دی‌پد پایین یا کشیدن انگشت روی صفحه &nbsp;|&nbsp; دسکتاپ: کلیدهای جهت‌دار / WASD</p>
+     <button id="startBtn" data-act="restart" data-i18n="start_btn">شروع بازی</button>
+    </div>
+   </div>
+  </div>
+  <div id="pad" aria-label="کنترل حرکت">
+   <button class="btn" data-dir="up" aria-label="بالا">▲</button>
+   <button class="btn" data-dir="left" aria-label="چپ">◀</button>
+   <button class="btn" data-dir="down" aria-label="پایین">▼</button>
+   <button class="btn" data-dir="right" aria-label="راست">▶</button>
+  </div>
+  <!-- پنل گالری -->
+  <div id="galleryPanel" class="modal">
+   <div class="modalCard">
+    <button type="button" class="modalClose" id="galleryCloseBtn" aria-label="بستن">×</button>
+    <h2 data-i18n="gallery_title">گالری</h2>
+    <p class="hint" data-i18n="gallery_hint">با فتح کامل هر مرحله، یکی از عکس‌ها باز می‌شود.</p>
+    <div class="photoGrid" id="galleryGrid"></div>
+   </div>
+  </div>
+  <!-- نمایش تمام‌صفحه -->
+  <div id="lightbox">
+   <button type="button" class="lightboxClose" id="lightboxCloseBtn" aria-label="بستن">×</button>
+   <div class="lightboxStage">
+    <img id="lightboxImg" src="" alt="">
+   </div>
+   <div class="lightboxActions">
+    <button type="button" id="btnSetWallpaper" class="wallpaperBtn"><span class="wIcon">📱</span><span class="wLabel" data-i18n="wallpaper_btn">تنظیم به‌عنوان پس‌زمینه گوشی</span></button>
+   </div>
+  </div>
+  <!-- پنل تنظیمات -->
+  <div id="settingsPanel" class="modal">
+   <div class="modalCard">
+    <button type="button" class="modalClose" id="settingsCloseBtn" aria-label="بستن">×</button>
+    <h2 data-i18n="settings_title">تنظیمات</h2>
+    <div class="settingsGroup">
+     <p class="settingsLabel" data-i18n="settings_lang_label">زبان برنامه</p>
+     <div class="langSwitch">
+      <button type="button" class="langBtn" id="langBtnFa" data-lang="fa">فارسی</button>
+      <button type="button" class="langBtn" id="langBtnEn" data-lang="en">English</button>
+     </div>
+    </div>
+    <div class="settingsGroup">
+     <button type="button" class="settingsAction" id="btnMyketRate"><span class="sIcon">⭐</span> <span class="sText" data-i18n="settings_rate">امتیاز دادن در مایکت</span></button>
+     <button type="button" class="settingsAction" id="btnMyketComment"><span class="sIcon">💬</span> <span class="sText" data-i18n="settings_comment">ثبت نظر در مایکت</span></button>
+    </div>
+    <div class="settingsGroup aboutBox">
+     <p class="settingsLabel" data-i18n="settings_about_title">درباره‌ی برنامه</p>
+     <p class="aboutLine"><span data-i18n="settings_about_dev">طراح و عرضه‌کننده:</span> <b>mistroll58</b></p>
+     <button type="button" class="settingsAction ghost" id="btnAboutGithub"><span class="sIcon">🔗</span> <span class="sText" data-i18n="settings_about_github">مشاهده گیت‌هاب سازنده</span></button>
+     <p class="versionLine"><span data-i18n="settings_version">نسخه</span> ۱٫۰</p>
+    </div>
+   </div>
+  </div>
+  <script src="script.js"></script>
+ </body>
+</html>
